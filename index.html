@@ -528,58 +528,16 @@
               .to('.loader-track', { scaleX: 1, duration: 0.8, ease: 'expo.out' }, "-=0.4")
               .to('#load-percentage', { opacity: 1, duration: 0.5 }, "-=0.2");
 
-            // Fetch the video and track actual download progress
-            fetch(video.querySelector('source').src)
-                .then(async response => {
-                    const reader = response.body.getReader();
-                    const contentLength = +response.headers.get('Content-Length');
-                    
-                    let receivedLength = 0;
-                    let chunks = [];
-                    const percentageEl = document.getElementById('load-percentage');
-                    const barEl = document.getElementById('loader-bar');
-
-                    // Proxy for smooth numerical tweening
-                    let progressProxy = { val: 0 };
-                    let progressTween = null;
-
-                    while(true) {
-                        const {done, value} = await reader.read();
-                        if (done) break;
-                        chunks.push(value);
-                        receivedLength += value.length;
-                        
-                        if (contentLength && percentageEl) {
-                            const targetPercent = Math.min(100, Math.floor((receivedLength / contentLength) * 100));
-                            
-                            if (progressTween) progressTween.kill();
-                            progressTween = gsap.to(progressProxy, {
-                                val: targetPercent,
-                                duration: 0.4,
-                                ease: 'power2.out',
-                                onUpdate: () => {
-                                    const current = Math.round(progressProxy.val);
-                                    percentageEl.innerText = current;
-                                    gsap.set(barEl, { width: current + '%' });
-                                }
-                            });
-                        }
-                    }
-
-                    // Wait for final tween to hit 100
-                    if (progressTween) await progressTween;
-                    percentageEl.innerText = "100";
-                    gsap.set(barEl, { width: '100%' });
-
-                    const blob = new Blob(chunks, {type: 'video/mp4'});
-                    const blobUrl = URL.createObjectURL(blob);
-                    video.src = blobUrl;
-                    video.load();
-
-                    // Phase 3: Exit Sequence & Hero Reveal
+            // Ensure video loads fully in cache before allowing scrubbing
+            video.preload = "auto";
+            
+            // Function to run the exit sequence
+            function runExitSequence() {
+                if(document.body.classList.contains('is-loading')) {
                     const exitTl = gsap.timeline({
                         onComplete: () => {
-                            document.getElementById('loading-screen').remove();
+                            const screen = document.getElementById('loading-screen');
+                            if (screen) screen.remove();
                             document.body.classList.remove('is-loading');
                         }
                     });
@@ -587,7 +545,6 @@
                     // Logo pops slightly then fades out
                     exitTl.to(['#loader-logo', '#loader-video'], { scale: 1.05, opacity: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.05 })
                           .to(['.loader-track', '#load-percentage'], { opacity: 0, duration: 0.4 }, "<")
-                          // Slide entire loader up
                           .to('#loading-screen', { yPercent: -100, duration: 1.0, ease: 'power4.inOut' })
                           
                           // Reveal Hero Elements Synchronized
@@ -602,20 +559,42 @@
                           }, "-=0.8")
                           .from('.hero-subhead', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, "-=0.6")
                           .from('.cta-button', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, "-=0.6");
-                })
-                .catch(err => {
-                    console.error("Error loading video blob:", err);
-                    gsap.to('#loading-screen', { yPercent: -100, duration: 0.5 });
-                    document.body.classList.remove('is-loading');
-                });
+                }
+            }
 
-            video.addEventListener('loadedmetadata', () => {
-                videoDuration = video.duration;
-                isVideoLoaded = true;
-                if (prefersReducedMotion.matches) {
-                    enableReducedMotion();
+            // Track native video buffering progress
+            video.addEventListener('progress', () => {
+                if (video.duration > 0 && video.buffered.length > 0) {
+                    let bufferedEnd = 0;
+                    for (let i = 0; i < video.buffered.length; i++) {
+                        bufferedEnd = Math.max(bufferedEnd, video.buffered.end(i));
+                    }
+                    
+                    const progress = bufferedEnd / video.duration;
+                    const percentage = Math.min(100, Math.floor(progress * 100));
+                    
+                    document.getElementById('load-percentage').innerText = percentage.toString();
+                    gsap.set('#loader-bar', { width: percentage + '%' });
+                    
+                    // If buffer is complete (or very close to complete)
+                    if (progress > 0.99) {
+                        runExitSequence();
+                    }
                 }
             });
+
+            video.addEventListener('canplaythrough', () => {
+                videoDuration = video.duration;
+                isVideoLoaded = true;
+                // Double check in case progress event didn't hit 100
+                setTimeout(runExitSequence, 500);
+            });
+
+            // Fallback: If it takes too long or errors, just force the exit
+            video.addEventListener('error', runExitSequence);
+            
+            // Force load
+            video.load();
 
             if (video.readyState >= 1) {
                 videoDuration = video.duration;

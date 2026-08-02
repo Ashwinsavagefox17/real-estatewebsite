@@ -458,15 +458,15 @@
 
             let targetTime = 0;
             let currentTime = 0;
-            const lerpFactor = 0.12;
+            const lerpFactor = 1.0; // Instantly follow Lenis's smoothed scroll
             let animationFrameId;
             let isVideoLoaded = false;
             let videoDuration = 0;
 
             // Initialize Lenis for Smooth Scrolling
             const lenis = new Lenis({
-                duration: 1.2,
-                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                lerp: 0.1, // Snappier, less floaty scroll
+                wheelMultiplier: 1.2,
                 orientation: 'vertical',
                 gestureOrientation: 'vertical',
                 smoothWheel: true,

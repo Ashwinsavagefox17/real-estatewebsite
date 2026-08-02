@@ -244,10 +244,15 @@
     </style>
 </head>
 <body>
-
-    <div class="grain-overlay"></div>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <h2>Loading Cinematic Experience</h2>
+        <p>Buffering maximum quality video...</p>
+    </div>
 
     <main>
+        <div class="grain-overlay"></div>
+
         <!-- Hero Scrubbing Section -->
         <section class="hero-spacer" id="hero-spacer">
             <div class="hero-sticky">
@@ -331,14 +336,21 @@
             let isVideoLoaded = false;
             let videoDuration = 0;
 
-            // Fetch the video as a blob to prevent Netlify's CDN from hanging
-            // on too many rapid HTTP Range requests for the 116MB file.
+            // Fetch the video as a blob to prevent CDN stalling
             fetch(video.querySelector('source').src)
                 .then(response => response.blob())
                 .then(blob => {
                     const blobUrl = URL.createObjectURL(blob);
                     video.src = blobUrl;
                     video.load();
+
+                    // Hide the loading screen smoothly
+                    const loader = document.getElementById('loading-screen');
+                    if(loader) {
+                        loader.style.opacity = '0';
+                        loader.style.visibility = 'hidden';
+                        setTimeout(() => loader.remove(), 800);
+                    }
                 })
                 .catch(err => console.error("Error loading video blob:", err));
 

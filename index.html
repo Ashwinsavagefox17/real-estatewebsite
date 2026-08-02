@@ -241,12 +241,107 @@
             }
         }
 
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .cat-loader {
+            width: 250px;
+            height: 60px;
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .cat {
+            font-size: 3rem;
+            position: absolute;
+            bottom: 5px;
+            left: -50px;
+            animation: catGallop 0.3s infinite alternate, catMove 3s infinite linear;
+            z-index: 2;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        
+        .cat-trail {
+            position: absolute;
+            bottom: 15px;
+            left: -70px;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            animation: catMove 3s infinite linear;
+            animation-delay: 0.1s;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: absolute;
+            bottom: 0;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            animation: progressMove 3s infinite linear;
+        }
+
+        @keyframes catGallop {
+            0% { transform: translateY(0) rotate(-5deg); }
+            100% { transform: translateY(-8px) rotate(8deg); }
+        }
+
+        @keyframes catMove {
+            0% { left: -50px; opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; left: 200px; }
+            100% { left: 250px; opacity: 0; }
+        }
+
+        @keyframes progressMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        #loading-screen h2 {
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        #loading-screen p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
     </style>
 </head>
 <body>
     <div id="loading-screen">
-        <div class="spinner"></div>
-        <h2>Loading Cinematic Experience</h2>
+        <div class="cat-loader">
+            <div class="cat-trail">💨</div>
+            <div class="cat">🐈</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+        <h2>LOADING CINEMATIC EXPERIENCE</h2>
         <p>Buffering maximum quality video...</p>
     </div>
 

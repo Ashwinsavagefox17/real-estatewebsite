@@ -331,6 +331,17 @@
             let isVideoLoaded = false;
             let videoDuration = 0;
 
+            // Fetch the video as a blob to prevent Netlify's CDN from hanging
+            // on too many rapid HTTP Range requests for the 116MB file.
+            fetch(video.querySelector('source').src)
+                .then(response => response.blob())
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    video.src = blobUrl;
+                    video.load();
+                })
+                .catch(err => console.error("Error loading video blob:", err));
+
             video.addEventListener('loadedmetadata', () => {
                 videoDuration = video.duration;
                 isVideoLoaded = true;

@@ -238,111 +238,59 @@
                 opacity: 1; /* Disable fade/transform on scroll */
                 transform: none;
                 transition: none;
-            }
-        }
-
         #loading-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background: #050505;
             color: #fff;
             z-index: 99999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+            transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
-        .cat-loader {
-            width: 250px;
-            height: 60px;
-            position: relative;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .cat {
-            font-size: 3rem;
-            position: absolute;
-            bottom: 5px;
-            left: -50px;
-            animation: catGallop 0.3s infinite alternate, catMove 3s infinite linear;
-            z-index: 2;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-        
-        .cat-trail {
-            position: absolute;
-            bottom: 15px;
-            left: -70px;
-            font-size: 1.5rem;
+        .don-brand {
+            font-size: 0.75rem;
+            letter-spacing: 6px;
             opacity: 0.5;
-            animation: catMove 3s infinite linear;
-            animation-delay: 0.1s;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
         }
 
-        .loading-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            position: absolute;
-            bottom: 0;
-            overflow: hidden;
+        .don-percentage {
+            font-size: 8rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -4px;
+            margin-bottom: 2rem;
+            font-variant-numeric: tabular-nums;
         }
 
-        .loading-progress {
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
-            animation: progressMove 3s infinite linear;
-        }
-
-        @keyframes catGallop {
-            0% { transform: translateY(0) rotate(-5deg); }
-            100% { transform: translateY(-8px) rotate(8deg); }
-        }
-
-        @keyframes catMove {
-            0% { left: -50px; opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; left: 200px; }
-            100% { left: 250px; opacity: 0; }
-        }
-
-        @keyframes progressMove {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-        }
-
-        #loading-screen h2 {
-            font-size: 1.2rem;
+        .don-tagline {
+            font-size: 1rem;
+            letter-spacing: 3px;
             font-weight: 300;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
+            opacity: 0.8;
+            text-transform: uppercase;
         }
 
-        #loading-screen p {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.5);
+        @media (max-width: 768px) {
+            .don-percentage { font-size: 5rem; }
+            .don-tagline { font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
     <div id="loading-screen">
-        <div class="cat-loader">
-            <div class="cat-trail">💨</div>
-            <div class="cat">🐈</div>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-        </div>
-        <h2>LOADING CINEMATIC EXPERIENCE</h2>
-        <p>Buffering maximum quality video...</p>
+        <div class="don-brand">L U X U R Y &nbsp;&nbsp;V I L L A S</div>
+        <div class="don-percentage" id="load-percentage">0%</div>
+        <div class="don-tagline">EXTRAORDINARY LIVING</div>
     </div>
 
     <main>
@@ -431,23 +379,51 @@
             let isVideoLoaded = false;
             let videoDuration = 0;
 
-            // Fetch the video as a blob to prevent CDN stalling
+            // Fetch the video and track actual download progress
             fetch(video.querySelector('source').src)
-                .then(response => response.blob())
-                .then(blob => {
+                .then(async response => {
+                    const reader = response.body.getReader();
+                    const contentLength = +response.headers.get('Content-Length');
+                    
+                    let receivedLength = 0;
+                    let chunks = [];
+                    const percentageEl = document.getElementById('load-percentage');
+
+                    while(true) {
+                        const {done, value} = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        receivedLength += value.length;
+                        
+                        // Update the percentage text in real time
+                        if (contentLength && percentageEl) {
+                            const percent = Math.floor((receivedLength / contentLength) * 100);
+                            percentageEl.innerText = percent + "%";
+                        }
+                    }
+
+                    const blob = new Blob(chunks, {type: 'video/mp4'});
                     const blobUrl = URL.createObjectURL(blob);
                     video.src = blobUrl;
                     video.load();
 
-                    // Hide the loading screen smoothly
+                    // Slide the loading screen up when done
                     const loader = document.getElementById('loading-screen');
                     if(loader) {
-                        loader.style.opacity = '0';
-                        loader.style.visibility = 'hidden';
-                        setTimeout(() => loader.remove(), 800);
+                        percentageEl.innerText = "100%"; // Ensure it hits 100
+                        setTimeout(() => {
+                            loader.style.transform = 'translateY(-100%)';
+                            setTimeout(() => loader.remove(), 1000);
+                        }, 200); // Tiny delay so user sees 100%
                     }
                 })
-                .catch(err => console.error("Error loading video blob:", err));
+                .catch(err => {
+                    console.error("Error loading video blob:", err);
+                    const loader = document.getElementById('loading-screen');
+                    if(loader) {
+                        loader.style.transform = 'translateY(-100%)'; // Hide on error
+                    }
+                });
 
             video.addEventListener('loadedmetadata', () => {
                 videoDuration = video.duration;

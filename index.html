@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Premium Animated Experience</title>
+    <meta name="description" content="Experience our exclusive premium product with an immersive scroll-linked story.">
+    <style>
+        /* CSS Variables for theming and typography */
+        :root {
+            --bg-color: #050505;
+            --text-main: #f5f5f7;
+            --text-muted: #86868b;
+            --accent-color: #2997ff; /* A clean, premium accent blue */
+            --accent-hover: #147ce5;
+            
+            /* Fluid typography using clamp */
+            --step--1: clamp(0.875rem, 0.825rem + 0.250vw, 1.000rem);
+            --step-0: clamp(1.000rem, 0.960rem + 0.200vw, 1.125rem); /* min ~16px */
+            --step-1: clamp(1.250rem, 1.160rem + 0.450vw, 1.500rem);
+            --step-2: clamp(1.500rem, 1.350rem + 0.750vw, 1.875rem);
+            --step-3: clamp(2.000rem, 1.700rem + 1.500vw, 2.750rem);
+            --step-4: clamp(2.500rem, 1.900rem + 3.000vw, 4.000rem);
+            --step-5: clamp(3.000rem, 2.000rem + 5.000vw, 5.500rem);
+
+            --space-xs: clamp(0.75rem, 0.65rem + 0.50vw, 1.00rem);
+            --space-s: clamp(1.00rem, 0.80rem + 1.00vw, 1.50rem);
+            --space-m: clamp(1.50rem, 1.10rem + 2.00vw, 2.50rem);
+            --space-l: clamp(2.00rem, 1.20rem + 4.00vw, 4.00rem);
+            --space-xl: clamp(4.00rem, 2.40rem + 8.00vw, 8.00rem);
+        }
+
+        /* Reset & Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-size: var(--step-0);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Focus styles for accessibility */
+        :focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 4px;
+        }
+
+        /* Subtle grain overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        /* Video Scrub Spacer & Container */
+        .hero-spacer {
+            position: relative;
+            height: 500vh; /* Gives plenty of scroll room to scrub */
+            width: 100%;
+        }
+
+        .hero-sticky {
+            position: sticky;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* The Scrubbing Video */
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures no letterboxing */
+            position: absolute;
+            top: 0;
+            left: 0;
+            will-change: transform;
+            z-index: 1;
+        }
+
+        /* Gradient vignette over video to ensure text readability */
+        .video-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.4) 0%, rgba(5,5,5,0.1) 40%, rgba(5,5,5,0.6) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Hero Content Overlay */
+        .hero-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 3;
+            padding: var(--space-m);
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: max(var(--space-m), env(safe-area-inset-left));
+            padding-right: max(var(--space-m), env(safe-area-inset-right));
+            transition: opacity 0.3s ease;
+        }
+
+        .hero-headline {
+            font-size: var(--step-5);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--space-xs);
+            max-width: 20ch;
+        }
+
+        .hero-subhead {
+            font-size: var(--step-2);
+            color: var(--text-muted);
+            font-weight: 400;
+            max-width: 30ch;
+            margin-bottom: var(--space-m);
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px; /* Minimum tap target */
+            min-width: 44px;
+            padding: 0.75rem 2rem;
+            background-color: var(--accent-color);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 9999px;
+            font-size: var(--step-0);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .cta-button:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.02);
+        }
+
+        /* Normal Content Sections */
+        .content-section {
+            position: relative;
+            z-index: 10;
+            background-color: var(--bg-color);
+            padding: var(--space-xl) var(--space-m);
+            padding-left: max(var(--space-m), env(safe-area-inset-left));
+            padding-right: max(var(--space-m), env(safe-area-inset-right));
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Fade-in Animation for Intersection Observer */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-size: var(--step-4);
+            font-weight: 600;
+            margin-bottom: var(--space-s);
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+        }
+
+        .section-text {
+            color: var(--text-muted);
+            font-size: var(--step-1);
+            max-width: 60ch;
+            margin-bottom: var(--space-m);
+        }
+
+        /* Footer */
+        .site-footer {
+            padding: var(--space-l) var(--space-m);
+            text-align: center;
+            background-color: var(--bg-color);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            font-size: var(--step--1);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .hero-spacer {
+                height: 100vh; /* Remove extra scroll space */
+            }
+            .hero-sticky {
+                position: relative; /* No sticky pinning */
+            }
+            .fade-up {
+                opacity: 1; /* Disable fade/transform on scroll */
+                transform: none;
+                transition: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="grain-overlay"></div>
+
+    <main>
+        <!-- Hero Scrubbing Section -->
+        <section class="hero-spacer" id="hero-spacer">
+            <div class="hero-sticky">
+                <!-- Using the optimized scrub.mp4 file -->
+                <video 
+                    class="hero-video" 
+                    id="scrub-video"
+                    muted 
+                    playsinline 
+                    webkit-playsinline 
+                    preload="auto" 
+                    disablepictureinpicture
+                    aria-label="A stunning cinematic presentation of our product"
+                >
+                    <source src="scrub_lv.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-vignette"></div>
+                
+                <!-- Overlay content that fades out on scroll -->
+                <div class="hero-content" id="hero-content">
+                    <h1 class="hero-headline">The Future is Here.</h1>
+                    <p class="hero-subhead">A breathtaking leap forward in performance, design, and possibilities.</p>
+                    <a href="#plot-to-construction" class="cta-button" aria-label="Discover the features">Discover More</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Normal Content Sections based on the architectural walkthrough -->
+        <section class="content-section" id="plot-to-construction">
+            <div class="container fade-up">
+                <h2 class="section-title">Plot to Construction</h2>
+                <p class="section-text">Rapid architectural time-lapse, the villa's concrete foundation and exposed steel structure quickly rise from the bare desert plot, building constructs itself layer by layer, dynamic forward camera push, fast and smooth.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="construction-to-finished">
+            <div class="container fade-up">
+                <h2 class="section-title">Construction to Finished</h2>
+                <p class="section-text">Rapid architectural time-lapse continuing, glass facade, walls and warm interior lights fill into the steel frame until it becomes the finished illuminated luxury villa at dusk, dynamic forward camera push.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="exterior-to-living-room">
+            <div class="container fade-up">
+                <h2 class="section-title">Exterior to Living Room</h2>
+                <p class="section-text">Fast smooth real estate walkthrough, the camera glides from the villa exterior across the pool, through the glass entrance, into the living room revealing the city skyline view, steadicam push-in.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="living-room-to-bedroom">
+            <div class="container fade-up">
+                <h2 class="section-title">Living Room to Bedroom</h2>
+                <p class="section-text">Fast smooth walkthrough, the camera glides quickly out of the living room, down a hallway and into the serene master bedroom revealing the skyline, dynamic immersive tour.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="bedroom-to-games-room">
+            <div class="container fade-up">
+                <h2 class="section-title">Bedroom to Games Room</h2>
+                <p class="section-text">Fast smooth walkthrough, the camera glides quickly from the master bedroom into the games room, revealing the billiards pool table and skyline, dynamic immersive tour.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Premium Brand. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const video = document.getElementById("scrub-video");
+            const spacer = document.getElementById("hero-spacer");
+            const overlayContent = document.getElementById("hero-content");
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+            let targetTime = 0;
+            let currentTime = 0;
+            const lerpFactor = 0.12;
+            let animationFrameId;
+            let isVideoLoaded = false;
+            let videoDuration = 0;
+
+            video.addEventListener('loadedmetadata', () => {
+                videoDuration = video.duration;
+                isVideoLoaded = true;
+                if (prefersReducedMotion.matches) {
+                    enableReducedMotion();
+                }
+            });
+
+            if (video.readyState >= 1) {
+                videoDuration = video.duration;
+                isVideoLoaded = true;
+                if (prefersReducedMotion.matches) {
+                    enableReducedMotion();
+                }
+            }
+
+            function enableReducedMotion() {
+                video.loop = true;
+                video.autoplay = true;
+                video.play().catch(e => console.log("Autoplay prevented:", e));
+                cancelAnimationFrame(animationFrameId);
+                overlayContent.style.opacity = '1';
+                overlayContent.style.position = 'relative';
+            }
+
+            function updateScroll() {
+                if (prefersReducedMotion.matches) return;
+
+                if (isVideoLoaded && videoDuration > 0) {
+                    const rect = spacer.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    const scrollableDistance = rect.height - windowHeight;
+                    const scrolled = Math.max(0, -rect.top);
+                    
+                    let progress = 0;
+                    if (scrollableDistance > 0) {
+                        progress = Math.min(1, scrolled / scrollableDistance);
+                    }
+
+                    targetTime = progress * videoDuration;
+
+                    let opacity = 1 - (progress * 6.66);
+                    opacity = Math.max(0, Math.min(1, opacity));
+                    overlayContent.style.opacity = opacity.toFixed(3);
+                }
+            }
+
+            function loop() {
+                if (!prefersReducedMotion.matches && isVideoLoaded && !isNaN(targetTime)) {
+                    currentTime += (targetTime - currentTime) * lerpFactor;
+                    if (Math.abs(currentTime - targetTime) > 0.001) {
+                        video.currentTime = currentTime;
+                    }
+                }
+                animationFrameId = requestAnimationFrame(loop);
+            }
+
+            window.addEventListener("scroll", () => {
+                requestAnimationFrame(updateScroll);
+            }, { passive: true });
+
+            prefersReducedMotion.addEventListener('change', (e) => {
+                if (e.matches) {
+                    enableReducedMotion();
+                } else {
+                    video.loop = false;
+                    video.autoplay = false;
+                    video.pause();
+                    loop();
+                    updateScroll();
+                }
+            });
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const fadeElements = document.querySelectorAll('.fade-up');
+            
+            if (!prefersReducedMotion.matches) {
+                fadeElements.forEach(el => {
+                    observer.observe(el);
+                });
+            } else {
+                fadeElements.forEach(el => el.classList.add('visible'));
+            }
+
+            updateScroll();
+            if (!prefersReducedMotion.matches) {
+                loop();
+            }
+        });
+    </script>
+</body>
+</html>

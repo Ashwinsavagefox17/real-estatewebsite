@@ -322,13 +322,23 @@
 
         .loader-logo {
             font-size: 0.85rem;
-            letter-spacing: 0.5em;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
             font-weight: 500;
             margin-bottom: 1.5rem;
             /* Initial state for GSAP */
             opacity: 0;
             filter: blur(10px);
+            transform: scale(0.95);
+        }
+
+        .loader-video {
+            width: 100px;
+            height: auto;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            /* Initial state for GSAP */
+            opacity: 0;
             transform: scale(0.95);
         }
 
@@ -386,7 +396,8 @@
         <div class="loader-noise"></div>
         <div class="loader-glow"></div>
         <div class="loader-content">
-            <div class="loader-logo" id="loader-logo">AGENCY STUDIO</div>
+            <video class="loader-video" id="loader-video" src="cat_loader.mp4" autoplay loop muted playsinline></video>
+            <div class="loader-logo" id="loader-logo">loadinggg  ZZZZZZZZZZZZ.......</div>
             <div class="loader-track">
                 <div class="loader-bar" id="loader-bar"></div>
             </div>
@@ -502,12 +513,13 @@
             const tl = gsap.timeline();
 
             // 1. Initial Logo Reveal (blur to sharp, scale down)
-            tl.to('#loader-logo', {
+            tl.to(['#loader-logo', '#loader-video'], {
                 opacity: 1,
                 scale: 1,
                 filter: 'blur(0px)',
                 duration: 0.8,
-                ease: 'power3.out'
+                ease: 'power3.out',
+                stagger: 0.1
             });
             
             // 2. Glow & Track appear
@@ -572,7 +584,7 @@
                     });
 
                     // Logo pops slightly then fades out
-                    exitTl.to('#loader-logo', { scale: 1.05, opacity: 0, duration: 0.5, ease: 'power2.inOut' })
+                    exitTl.to(['#loader-logo', '#loader-video'], { scale: 1.05, opacity: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.05 })
                           .to(['.loader-track', '#load-percentage'], { opacity: 0, duration: 0.4 }, "<")
                           // Slide entire loader up
                           .to('#loading-screen', { yPercent: -100, duration: 1.0, ease: 'power4.inOut' })

@@ -37,8 +37,25 @@
             padding: 0;
         }
 
+        /* Lenis Required CSS */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         html {
-            scroll-behavior: smooth;
+            /* Handled by Lenis */
         }
 
         body {
@@ -458,15 +475,14 @@
 
             let targetTime = 0;
             let currentTime = 0;
-            const lerpFactor = 1.0; // Instantly follow Lenis's smoothed scroll
+            const lerpFactor = 0.5; // High factor for snappy response without breaking precision check
             let animationFrameId;
             let isVideoLoaded = false;
             let videoDuration = 0;
 
             // Initialize Lenis for Smooth Scrolling
             const lenis = new Lenis({
-                lerp: 0.1, // Snappier, less floaty scroll
-                wheelMultiplier: 1.2,
+                lerp: 0.2, // Faster scroll response
                 orientation: 'vertical',
                 gestureOrientation: 'vertical',
                 smoothWheel: true,

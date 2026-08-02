@@ -238,59 +238,143 @@
                 opacity: 1; /* Disable fade/transform on scroll */
                 transform: none;
                 transition: none;
-        #loading-screen {
+            }
+        }
+
+        /* --- Cinematic Preloader Styles --- */
+        body.is-loading {
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .cinematic-loader {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #050505;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
             color: #fff;
             z-index: 99999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Neue Montreal', 'General Sans', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
         }
 
-        .don-brand {
-            font-size: 0.75rem;
-            letter-spacing: 6px;
-            opacity: 0.5;
-            margin-bottom: 2rem;
+        .loader-noise {
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            opacity: 0.04;
+            pointer-events: none;
+            animation: noise 1s steps(2) infinite;
+        }
+
+        @keyframes noise {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 15%); }
+            80% { transform: translate(3%, 35%); }
+            90% { transform: translate(-10%, 10%); }
+        }
+
+        .loader-glow {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 40vw; height: 40vw;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0) 70%);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0; /* GSAP will fade this in */
+        }
+
+        .loader-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .loader-logo {
+            font-size: 0.85rem;
+            letter-spacing: 0.5em;
             text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            /* Initial state for GSAP */
+            opacity: 0;
+            filter: blur(10px);
+            transform: scale(0.95);
         }
 
-        .don-percentage {
-            font-size: 8rem;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: -4px;
-            margin-bottom: 2rem;
+        .loader-track {
+            width: 100%;
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+            position: relative;
+            margin-bottom: 1rem;
+            /* Initial state for GSAP */
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        .loader-bar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #fff;
+            width: 0%;
+        }
+
+        .loader-percentage {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
             font-variant-numeric: tabular-nums;
+            opacity: 0; /* GSAP will fade this in */
+            color: rgba(255,255,255,0.7);
         }
 
-        .don-tagline {
-            font-size: 1rem;
-            letter-spacing: 3px;
-            font-weight: 300;
-            opacity: 0.8;
-            text-transform: uppercase;
+        /* Prevent FOUC for Hero Content */
+        .hero-content {
+            opacity: 0;
+            visibility: hidden;
         }
-
-        @media (max-width: 768px) {
-            .don-percentage { font-size: 5rem; }
-            .don-tagline { font-size: 0.8rem; }
+        .hero-video {
+            transform: scale(1.1);
+        }
+        .site-header {
+            opacity: 0;
+            transform: translateY(-20px);
         }
     </style>
+    
+    <!-- GSAP Core & CustomEase -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+    <!-- SplitType for Text Reveal -->
+    <script src="https://unpkg.com/split-type"></script>
+    <!-- Lenis for Smooth Scrolling -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js"></script>
 </head>
-<body>
-    <div id="loading-screen">
-        <div class="don-brand">L U X U R Y &nbsp;&nbsp;V I L L A S</div>
-        <div class="don-percentage" id="load-percentage">0%</div>
-        <div class="don-tagline">EXTRAORDINARY LIVING</div>
+<body class="is-loading">
+    <div id="loading-screen" class="cinematic-loader">
+        <div class="loader-noise"></div>
+        <div class="loader-glow"></div>
+        <div class="loader-content">
+            <div class="loader-logo" id="loader-logo">AGENCY STUDIO</div>
+            <div class="loader-track">
+                <div class="loader-bar" id="loader-bar"></div>
+            </div>
+            <div class="loader-percentage" id="load-percentage">0</div>
+        </div>
     </div>
 
     <main>
@@ -379,6 +463,42 @@
             let isVideoLoaded = false;
             let videoDuration = 0;
 
+            // Initialize Lenis for Smooth Scrolling
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                orientation: 'vertical',
+                gestureOrientation: 'vertical',
+                smoothWheel: true,
+                touchMultiplier: 2,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+
+            // Setup SplitType for Headline
+            const heroHeadline = new SplitType('.hero-headline', { types: 'lines' });
+
+            // GSAP Preloader Timeline
+            const tl = gsap.timeline();
+
+            // 1. Initial Logo Reveal (blur to sharp, scale down)
+            tl.to('#loader-logo', {
+                opacity: 1,
+                scale: 1,
+                filter: 'blur(0px)',
+                duration: 0.8,
+                ease: 'power3.out'
+            });
+            
+            // 2. Glow & Track appear
+            tl.to('.loader-glow', { opacity: 0.5, duration: 1 }, "<")
+              .to('.loader-track', { scaleX: 1, duration: 0.8, ease: 'expo.out' }, "-=0.4")
+              .to('#load-percentage', { opacity: 1, duration: 0.5 }, "-=0.2");
+
             // Fetch the video and track actual download progress
             fetch(video.querySelector('source').src)
                 .then(async response => {
@@ -388,6 +508,11 @@
                     let receivedLength = 0;
                     let chunks = [];
                     const percentageEl = document.getElementById('load-percentage');
+                    const barEl = document.getElementById('loader-bar');
+
+                    // Proxy for smooth numerical tweening
+                    let progressProxy = { val: 0 };
+                    let progressTween = null;
 
                     while(true) {
                         const {done, value} = await reader.read();
@@ -395,34 +520,64 @@
                         chunks.push(value);
                         receivedLength += value.length;
                         
-                        // Update the percentage text in real time
                         if (contentLength && percentageEl) {
-                            const percent = Math.floor((receivedLength / contentLength) * 100);
-                            percentageEl.innerText = percent + "%";
+                            const targetPercent = Math.min(100, Math.floor((receivedLength / contentLength) * 100));
+                            
+                            if (progressTween) progressTween.kill();
+                            progressTween = gsap.to(progressProxy, {
+                                val: targetPercent,
+                                duration: 0.4,
+                                ease: 'power2.out',
+                                onUpdate: () => {
+                                    const current = Math.round(progressProxy.val);
+                                    percentageEl.innerText = current;
+                                    gsap.set(barEl, { width: current + '%' });
+                                }
+                            });
                         }
                     }
+
+                    // Wait for final tween to hit 100
+                    if (progressTween) await progressTween;
+                    percentageEl.innerText = "100";
+                    gsap.set(barEl, { width: '100%' });
 
                     const blob = new Blob(chunks, {type: 'video/mp4'});
                     const blobUrl = URL.createObjectURL(blob);
                     video.src = blobUrl;
                     video.load();
 
-                    // Slide the loading screen up when done
-                    const loader = document.getElementById('loading-screen');
-                    if(loader) {
-                        percentageEl.innerText = "100%"; // Ensure it hits 100
-                        setTimeout(() => {
-                            loader.style.transform = 'translateY(-100%)';
-                            setTimeout(() => loader.remove(), 1000);
-                        }, 200); // Tiny delay so user sees 100%
-                    }
+                    // Phase 3: Exit Sequence & Hero Reveal
+                    const exitTl = gsap.timeline({
+                        onComplete: () => {
+                            document.getElementById('loading-screen').remove();
+                            document.body.classList.remove('is-loading');
+                        }
+                    });
+
+                    // Logo pops slightly then fades out
+                    exitTl.to('#loader-logo', { scale: 1.05, opacity: 0, duration: 0.5, ease: 'power2.inOut' })
+                          .to(['.loader-track', '#load-percentage'], { opacity: 0, duration: 0.4 }, "<")
+                          // Slide entire loader up
+                          .to('#loading-screen', { yPercent: -100, duration: 1.0, ease: 'power4.inOut' })
+                          
+                          // Reveal Hero Elements Synchronized
+                          .to('.hero-video', { scale: 1.0, duration: 1.2, ease: 'expo.out' }, "-=0.6")
+                          .set('.hero-content', { autoAlpha: 1 }, "-=1.0")
+                          .from(heroHeadline.lines, {
+                              y: 40,
+                              opacity: 0,
+                              duration: 0.8,
+                              stagger: 0.1,
+                              ease: 'power3.out'
+                          }, "-=0.8")
+                          .from('.hero-subhead', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, "-=0.6")
+                          .from('.cta-button', { y: 20, opacity: 0, duration: 0.8, ease: 'power3.out' }, "-=0.6");
                 })
                 .catch(err => {
                     console.error("Error loading video blob:", err);
-                    const loader = document.getElementById('loading-screen');
-                    if(loader) {
-                        loader.style.transform = 'translateY(-100%)'; // Hide on error
-                    }
+                    gsap.to('#loading-screen', { yPercent: -100, duration: 0.5 });
+                    document.body.classList.remove('is-loading');
                 });
 
             video.addEventListener('loadedmetadata', () => {
